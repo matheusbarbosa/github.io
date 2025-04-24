@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Desafio 1kg</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; color: #333; }
+        h1, h2 { color: #444; }
+        input, button { padding: 10px; margin: 5px 0; width: 100%; max-width: 400px; }
+        .entry { background: white; padding: 10px; margin-top: 10px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+        canvas { max-width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>Desafio 1kg</h1>
+    <p>Registre seu peso e ingestão calórica diária:</p>
+    <input type="date" id="data">
+    <input type="number" id="peso" placeholder="Peso (kg)" step="0.01">
+    <input type="number" id="calorias" placeholder="Ingestão calórica (kcal)">
+    <button onclick="registrar()">Registrar</button>
+    <button onclick="limpar()">Limpar histórico</button>
+    <h2>Histórico</h2>
+    <div id="historico"></div>
+    <canvas id="graficoPeso"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const TDEE = 2300;
+        let dados = JSON.parse(localStorage.getItem("desafio1kg")) || [];
+
+        function registrar() {
+            const data = document.getElementById("data").value;
+            const peso = parseFloat(document.getElementById("peso").value);
+            const calorias = parseInt(document.getElementById("calorias").value);
+
+            if (!data || isNaN(peso) || isNaN(calorias)) {
+                alert("Preencha todos os campos.");
+                return;
+            }
+
+            const deficit = TDEE - calorias;
+            dados.push({ data, peso, calorias, deficit });
+            localStorage.setItem("desafio1kg", JSON.stringify(dados));
+            atualizarHistorico();
+        }
+
+        function limpar() {
+            if (confirm("Tem certeza que deseja apagar o histórico?")) {
+                localStorage.removeItem("desafio1kg");
+                dados = [];
+                atualizarHistorico();
+            }
+        }
+
+        function atualizarHistorico() {
+            const historicoDiv = document.getElementById("historico");
+            historicoDiv.innerHTML = "";
+            let totalDeficit = 0;
+
+            dados.forEach(entry => {
+                totalDeficit += entry.deficit;
+                const perdaEstimada = (totalDeficit / 7700).toFixed(2);
+                const div = document.createElement("div");
+                div.className = "entry";
+                div.innerHTML = `
+                    <strong>${entry.data}</strong><br>
+                    Peso: ${entry.peso} kg<br>
+                    Ingestão: ${entry.calorias} kcal<br>
+                    Déficit: ${entry.deficit} kcal<br>
+                    Perda estimada acumulada: ${perdaEstimada} kg
+                `;
+                historicoDiv.appendChild(div);
+            });
+
+            atualizarGrafico();
+        }
+
+        function atualizarGrafico() {
+            const ctx = document.getElementById("graficoPeso").getContext("2d");
+            const labels = dados.map(entry => entry.data);
+            const pesos = dados.map(entry => entry.peso);
+
+            if (window.meuGrafico) window.meuGrafico.destroy();
+
+            window.meuGrafico = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Peso (kg)',
+                        data: pesos,
+                        borderColor: '#4CAF50',
+                        fill: false,
+                        tension: 0.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+
+        atualizarHistorico();
+    </script>
+</body>
+</html>
