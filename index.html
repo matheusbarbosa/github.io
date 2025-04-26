@@ -1,113 +1,156 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Desafio 1kg</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; color: #333; }
-        h1, h2 { color: #444; }
-        input, button { padding: 10px; margin: 5px 0; width: 100%; max-width: 400px; }
-        .entry { background: white; padding: 10px; margin-top: 10px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
-        canvas { max-width: 98%; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Desafio 1kg - Matheus</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f2f2f2;
+      color: #333;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    canvas {
+      width: 100% !important;
+      max-width: 600px;
+      height: auto !important;
+      display: block;
+      margin: 20px auto;
+    }
+    .resultado {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+      input, button {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        border: 1px solid #444;
+      }
+      button {
+        background-color: #006400;
+      }
+      button:hover {
+        background-color: #228B22;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="container">
     <h1>Desafio 1kg</h1>
-    <p>Registre seu peso e ingestão calórica diária:</p>
+    <h2>Matheus Barbosa</h2>
+
     <input type="date" id="data">
-    <input type="number" id="peso" placeholder="Peso (kg)" step="0.01">
-    <input type="number" id="calorias" placeholder="Ingestão calórica (kcal)">
+    <input type="number" id="peso" placeholder="Peso (kg)">
+    <input type="number" id="calorias" placeholder="Ingestão Calórica (kcal)">
+    <input type="number" id="gasto" placeholder="Gasto Calórico (kcal)">
     <button onclick="registrar()">Registrar</button>
-    <button onclick="limpar()">Limpar histórico</button>
-    <h2>Histórico</h2>
-    <div id="historico"></div>
-    <canvas id="graficoPeso"></canvas>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const TDEE = 2300;
-        let dados = JSON.parse(localStorage.getItem("desafio1kg")) || [];
+    <div class="resultado" id="resultado"></div>
+    <canvas id="grafico"></canvas>
+    <div class="resultado" id="previsao"></div>
+  </div>
 
-        function registrar() {
-            const data = document.getElementById("data").value;
-            const peso = parseFloat(document.getElementById("peso").value);
-            const calorias = parseInt(document.getElementById("calorias").value);
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('grafico').getContext('2d');
+    let dados = JSON.parse(localStorage.getItem('progresso')) || [];
 
-            if (!data || isNaN(peso) || isNaN(calorias)) {
-                alert("Preencha todos os campos.");
-                return;
-            }
-
-            const deficit = TDEE - calorias;
-            dados.push({ data, peso, calorias, deficit });
-            localStorage.setItem("desafio1kg", JSON.stringify(dados));
-            atualizarHistorico();
+    let grafico = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: dados.map(d => d.data),
+        datasets: [{
+          label: 'Peso (kg)',
+          data: dados.map(d => d.peso),
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: false
+          }
         }
+      }
+    });
 
-        function limpar() {
-            if (confirm("Tem certeza que deseja apagar o histórico?")) {
-                localStorage.removeItem("desafio1kg");
-                dados = [];
-                atualizarHistorico();
-            }
-        }
+    function registrar() {
+      const data = document.getElementById('data').value;
+      const peso = parseFloat(document.getElementById('peso').value);
+      const calorias = parseFloat(document.getElementById('calorias').value);
+      const gasto = parseFloat(document.getElementById('gasto').value);
 
-        function atualizarHistorico() {
-            const historicoDiv = document.getElementById("historico");
-            historicoDiv.innerHTML = "";
-            let totalDeficit = 0;
+      if (!data || isNaN(peso) || isNaN(calorias) || isNaN(gasto)) {
+        alert("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
 
-            dados.forEach(entry => {
-                totalDeficit += entry.deficit;
-                const perdaEstimada = (totalDeficit / 7700).toFixed(2);
-                const div = document.createElement("div");
-                div.className = "entry";
-                div.innerHTML = `
-                    <strong>${entry.data}</strong><br>
-                    Peso: ${entry.peso} kg<br>
-                    Ingestão: ${entry.calorias} kcal<br>
-                    Déficit: ${entry.deficit} kcal<br>
-                    Perda estimada acumulada: ${perdaEstimada} kg
-                `;
-                historicoDiv.appendChild(div);
-            });
+      const deficit = gasto - calorias;
+      const variacaoPeso = deficit / 7700;
 
-            atualizarGrafico();
-        }
+      dados.push({ data, peso, calorias, gasto, deficit });
+      localStorage.setItem('progresso', JSON.stringify(dados));
+      
+      atualizar();
+    }
 
-        function atualizarGrafico() {
-            const ctx = document.getElementById("graficoPeso").getContext("2d");
-            const labels = dados.map(entry => entry.data);
-            const pesos = dados.map(entry => entry.peso);
+    function atualizar() {
+      grafico.data.labels = dados.map(d => d.data);
+      grafico.data.datasets[0].data = dados.map(d => d.peso);
+      grafico.update();
 
-            if (window.meuGrafico) window.meuGrafico.destroy();
+      const ultimoDeficit = dados[dados.length - 1].deficit;
+      const textoResultado = ultimoDeficit >= 0 ? 
+        `Perda estimada: ${(ultimoDeficit/7700).toFixed(3)} kg` : 
+        `Ganho estimado: ${Math.abs(ultimoDeficit/7700).toFixed(3)} kg`;
+      document.getElementById('resultado').innerText = textoResultado;
 
-            window.meuGrafico = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Peso (kg)',
-                        data: pesos,
-                        borderColor: '#4CAF50',
-                        fill: false,
-                        tension: 0.2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: false
-                        }
-                    }
-                }
-            });
-        }
+      const mediaDeficit = dados.reduce((acc, cur) => acc + cur.deficit, 0) / dados.length;
+      const previsao7dias = mediaDeficit * 7 / 7700;
+      document.getElementById('previsao').innerText = `Previsão de variação em 7 dias: ${previsao7dias.toFixed(2)} kg`;
+    }
 
-        atualizarHistorico();
-    </script>
+    atualizar();
+  </script>
 </body>
 </html>
