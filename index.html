@@ -251,4 +251,33 @@
     }
 
     function excluir(index) {
-      if (confirm("Tem certeza que deseja excluir este registro?
+      if (confirm("Tem certeza que deseja excluir este registro?")) {
+        dados.splice(index, 1);
+        salvarAtualizar();
+      }
+    }
+
+    function editar(index) {
+      const d = dados[index];
+      document.getElementById('data').value = d.data;
+      document.getElementById('peso').value = d.peso;
+      document.getElementById('calorias').value = d.calorias;
+      document.getElementById('gasto').value = d.gasto;
+      excluir(index);
+    }
+
+    function baixarHistorico() {
+      const csv = dados.map(d => `${d.data},${d.peso},${d.calorias},${d.gasto},${d.deficit}`).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'historico.csv';
+      link.click();
+      document.getElementById('downloadMsg').style.display = "block";
+      setTimeout(() => document.getElementById('downloadMsg').style.display = "none", 3000);
+    }
+
+    salvarAtualizar();
+  </script>
+</body>
+</html>
