@@ -199,20 +199,21 @@
     }
 
     function atualizarGrafico() {
-      grafico.data.labels = dados.map(d => d.data);
-      grafico.data.datasets[0].data = dados.map(d => d.peso);
-      grafico.update();
+  // Inverte as labels (datas) e os dados para exibir do mais antigo para o mais recente
+  grafico.data.labels = dados.map(d => d.data).reverse();
+  grafico.data.datasets[0].data = dados.map(d => d.peso).reverse();
+  grafico.update();
 
-      const ultimo = dados[dados.length - 1];
-      const textoResultado = ultimo.deficit >= 0 ?
-        `Perda estimada: ${(ultimo.deficit/7700).toFixed(3)} kg` :
-        `Ganho estimado: ${Math.abs(ultimo.deficit/7700).toFixed(3)} kg`;
-      document.getElementById('resultado').innerText = textoResultado;
+  const ultimo = dados[dados.length - 1];
+  const textoResultado = ultimo.deficit >= 0 ?
+    `Perda estimada: ${(ultimo.deficit / 7700).toFixed(3)} kg` :
+    `Ganho estimado: ${Math.abs(ultimo.deficit / 7700).toFixed(3)} kg`;
+  document.getElementById('resultado').innerText = textoResultado;
 
-      const mediaDeficit = dados.reduce((acc, cur) => acc + cur.deficit, 0) / dados.length;
-      const previsao7dias = mediaDeficit * 7 / 7700;
-      document.getElementById('previsao').innerText = `Previsão de variação em 7 dias: ${previsao7dias.toFixed(2)} kg`;
-    }
+  const mediaDeficit = dados.reduce((acc, cur) => acc + cur.deficit, 0) / dados.length;
+  const previsao7dias = mediaDeficit * 7 / 7700;
+  document.getElementById('previsao').innerText = `Previsão de variação em 7 dias: ${previsao7dias.toFixed(2)} kg`;
+}
 
     function atualizarLista() {
       const lista = document.getElementById('lista');
