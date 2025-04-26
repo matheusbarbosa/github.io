@@ -88,6 +88,12 @@
       margin: 5px 1%;
       font-size: 14px;
     }
+    #downloadMsg {
+      text-align: center;
+      color: #4CAF50;
+      font-weight: bold;
+      display: none;
+    }
     @media (prefers-color-scheme: dark) {
       body {
         background-color: #121212;
@@ -127,6 +133,8 @@
     <div class="resultado" id="previsao"></div>
 
     <div class="lista" id="lista"></div>
+    <button onclick="baixarHistorico()">Baixar Histórico (.csv)</button>
+    <div id="downloadMsg">Histórico baixado com sucesso!</div>
   </div>
 
   <div id="modal" class="modal">
@@ -243,25 +251,4 @@
     }
 
     function excluir(index) {
-      if (confirm("Tem certeza que deseja excluir este registro?")) {
-        dados.splice(index, 1);
-        salvarAtualizar();
-        fecharModal();
-      }
-    }
-
-    function editar(index) {
-      const d = dados[index];
-      document.getElementById('data').value = d.data;
-      document.getElementById('peso').value = d.peso;
-      document.getElementById('calorias').value = d.calorias;
-      document.getElementById('gasto').value = d.gasto;
-      fecharModal();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    atualizarGrafico();
-    atualizarLista();
-  </script>
-</body>
-</html>
+      if (confirm("Tem certeza que deseja excluir este registro?
